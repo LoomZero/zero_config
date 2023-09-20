@@ -1,0 +1,9 @@
+zero_config.form:
+  path: '/admin/config/zero'
+  defaults:
+    _form: '\Drupal\zero_config\Form\ConfigForm'
+    _title: 'Zero Config'
+  requirements:
+    _permission: 'administer zero_config'
+  options:
+    _admin_route: TRUE
