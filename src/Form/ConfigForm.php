@@ -95,7 +95,7 @@ class ConfigForm extends ConfigFormBase {
           $form[$index]['#default_value'] = $this->getStates()[$group . '.' . $index . '.value'] ?? NULL;
           break;
         case 'managed_file':
-          $form[$index]['#default_value'] = [$this->getStates()[$group . '.' . $index . '.0'] ?? NULL];
+          $form[$index]['#default_value'] = !empty($this->getStates()[$group . '.' . $index . '.0']) ? [$this->getStates()[$group . '.' . $index . '.0']] : [];
           break;
         default:
           $form[$index]['#default_value'] = $this->getStates()[$group . '.' . $index] ?? NULL;
