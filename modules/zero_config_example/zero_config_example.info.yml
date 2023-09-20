@@ -1,0 +1,5 @@
+name: Zero Config Examples
+description: Provides config page examples
+package: zero test
+type: module
+core_version_requirement: ^8.8.0 || ^9 || ^10

@@ -11,4 +11,6 @@ class ConfigPlugin extends Plugin {
 
   public string $id;
 
+  public string $title;
+
 }

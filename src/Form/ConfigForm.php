@@ -39,7 +39,7 @@ class ConfigForm extends ConfigFormBase {
     foreach ($manager->getDefinitions() as $id => $definition) {
       $form[$id] = [
         '#type' => 'details',
-        '#title' => isset($definition['title']) ? $definition['title'] . ' (' . $definition['id'] . ')' : $definition['id'],
+        '#title' => $definition['title'] ?? $definition['id'],
         '#description' => 'ID: ' . $definition['id'] . ' CLASS: ' . $definition['class'],
       ];
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\zero_config\Plugin\ZeroConfig;
+namespace Drupal\zero_config_example\Plugin\ZeroConfig;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\zero_config\Annotation\ConfigPlugin;
@@ -9,7 +9,8 @@ use Drupal\zero_config\Form\ConfigForm;
 
 /**
  * @ConfigPlugin(
- *   id="test"
+ *   id="test_example",
+ *   title="Test Example"
  * )
  */
 class TestConfig implements ConfigPluginInterface {
@@ -39,7 +40,7 @@ class TestConfig implements ConfigPluginInterface {
 
   public function submit(array &$form, FormStateInterface $form_state, ConfigForm $config_form): array {
     return [
-      'state' => $config_form->getSubmitValues($form_state, 'test'),
+      'state' => $config_form->getSubmitValues($form_state, 'test_example'),
     ];
   }
 

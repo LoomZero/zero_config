@@ -1,4 +1,4 @@
-name: ZERO Config
+name: Zero Config
 description: Provides config page
 configure: zero_config.form
 package: zero
