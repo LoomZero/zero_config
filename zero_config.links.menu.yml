@@ -1,6 +1,6 @@
-zero_config.config.form:
+zero_config.form:
   title: 'Zero Config'
-  route_name: zero_config.config.form
+  route_name: zero_config.form
   description: 'Manage zero config'
   parent: system.admin_config_system
   weight: 99
