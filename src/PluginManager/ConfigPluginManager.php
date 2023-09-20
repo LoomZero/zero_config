@@ -2,9 +2,11 @@
 
 namespace Drupal\zero_config\PluginManager;
 
+use Drupal;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
+use Drupal\file\FileInterface;
 use Traversable;
 
 /**
@@ -37,6 +39,34 @@ class ConfigPluginManager extends DefaultPluginManager {
     );
     $this->alterInfo('zero_config_info');
     $this->setCacheBackend($cache_backend, 'zero_config_info_plugins');
+  }
+
+  public function getStates(): array {
+    return Drupal::state()->get('zero_config', []);
+  }
+
+  public function getBody(array $states, string $field): ?array {
+    if (empty($states[$field . '.value'])) return NULL;
+    return [
+      '#type' => 'processed_text',
+      '#text' => $states[$field . '.value'],
+      '#format' => $states[$field . '.format'],
+    ];
+  }
+
+  public function getImageStyle(array $states, string $image_style, string $field, int $index = 0): ?array {
+    $id = $states[$field . '.' . $index] ?? NULL;
+    if (empty($id)) return NULL;
+    $file = Drupal::entityTypeManager()->getStorage('file')->load($id);
+    if (!$file instanceof FileInterface) return NULL;
+
+    return [
+      '#theme' => 'image_style',
+      '#path' => $file->getFileUri(),
+      '#style_name' => $image_style,
+      '#alt' => $file->getFilename(),
+      '#title' => $file->getFilename(),
+    ];
   }
 
 }

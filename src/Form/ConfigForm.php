@@ -10,6 +10,8 @@ use Drupal\zero_config\PluginManager\ConfigPluginManager;
 
 class ConfigForm extends ConfigFormBase {
 
+  private ?ConfigPluginManager $manager = NULL;
+
   /**
    * {@inheritdoc}
    */
@@ -26,17 +28,21 @@ class ConfigForm extends ConfigFormBase {
     ];
   }
 
+  public function getManager(): ConfigPluginManager {
+    if ($this->manager === NULL) {
+      $this->manager = Drupal::service('plugin.manager.zero_config');
+    }
+    return $this->manager;
+  }
+
   /**
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    /** @var ConfigPluginManager $manager */
-    $manager = Drupal::service('plugin.manager.zero_config');
-
     $form['#tree'] = TRUE;
 
     // add plugins
-    foreach ($manager->getDefinitions() as $id => $definition) {
+    foreach ($this->getManager()->getDefinitions() as $id => $definition) {
       $form[$id] = [
         '#type' => 'details',
         '#title' => $definition['title'] ?? $definition['id'],
@@ -44,7 +50,7 @@ class ConfigForm extends ConfigFormBase {
       ];
 
       /** @var Drupal\zero_config\Base\ConfigPluginInterface $plugin */
-      $plugin = $manager->createInstance($id, $definition);
+      $plugin = $this->getManager()->createInstance($id, $definition);
 
       $plugin->form($form[$id], $form_state, $this);
       $this->prepareFields($id, $form[$id]);
@@ -77,7 +83,7 @@ class ConfigForm extends ConfigFormBase {
   }
 
   public function getStates(): array {
-    return Drupal::state()->get('zero_config', []);
+    return $this->getManager()->getStates();
   }
 
   public function prepareFields($group, &$form) {
@@ -87,6 +93,9 @@ class ConfigForm extends ConfigFormBase {
         case 'text_format':
           $form[$index]['#format'] = $this->getStates()[$group . '.' . $index . '.format'] ?? $form[$index]['#format'];
           $form[$index]['#default_value'] = $this->getStates()[$group . '.' . $index . '.value'] ?? NULL;
+          break;
+        case 'managed_file':
+          $form[$index]['#default_value'] = [$this->getStates()[$group . '.' . $index . '.0'] ?? NULL];
           break;
         default:
           $form[$index]['#default_value'] = $this->getStates()[$group . '.' . $index] ?? NULL;
