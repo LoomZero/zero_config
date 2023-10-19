@@ -2,7 +2,9 @@
 
 namespace Drupal\zero_config\Form;
 
+use Closure;
 use Drupal;
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
@@ -65,6 +67,7 @@ class ConfigForm extends ConfigFormBase {
     /** @var ConfigPluginManager $manager */
     $manager = Drupal::service('plugin.manager.zero_config');
 
+    // build states object
     $states = [];
     foreach ($manager->getDefinitions() as $id => $definition) {
       /** @var Drupal\zero_config\Base\ConfigPluginInterface $plugin */
@@ -78,7 +81,29 @@ class ConfigForm extends ConfigFormBase {
       }
     }
 
+    // save new states
     Drupal::state()->set('zero_config', $states);
+
+    // check if values have changed
+    $existing_states = Drupal::state()->get('zero_config');
+    $diff = [];
+    foreach ($existing_states as $key => $value) {
+      $a = $value;
+      $b = isset($states[$key]) ? $states[$key] : NULL;
+      if (is_array($a)) $a = json_encode($a);
+      if (is_array($b)) $b = json_encode($b);
+      if ($a !== $b) $diff[$key] = $value;
+    }
+
+    // clear cache for changed values
+    $keys = ['zero_config' => 0];
+    foreach ($diff as $key => $value) {
+      $split = explode('.', $key);
+      $keys['zero_config.' . $split[0]] = count($keys);
+      $keys['zero_config.' . $split[0] . '.' . $split[1]] = count($keys);
+    }
+    Cache::invalidateTags(array_flip($keys));
+
     parent::submitForm($form, $form_state);
   }
 

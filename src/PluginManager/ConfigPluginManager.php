@@ -3,10 +3,12 @@
 namespace Drupal\zero_config\PluginManager;
 
 use Drupal;
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\file\FileInterface;
+use Drupal\zero_cache\Service\ZeroCacheService;
 use Traversable;
 
 /**
@@ -17,6 +19,8 @@ use Traversable;
  * @see plugin_api
  */
 class ConfigPluginManager extends DefaultPluginManager {
+
+  private ZeroCacheService $cache;
 
   /**
    * Constructs a ArchiverManager object.
@@ -39,23 +43,54 @@ class ConfigPluginManager extends DefaultPluginManager {
     );
     $this->alterInfo('zero_config_info');
     $this->setCacheBackend($cache_backend, 'zero_config_info_plugins');
+    $this->cache = Drupal::service('zero_cache.service');
+  }
+
+  public function getCacheTag(string $key) {
+    if (str_starts_with($key, 'zero_config.')) return $key;
+    $split = explode('.', $key);
+    if (!empty($split[1])) {
+      return 'zero_config.' . $split[0] . '.' . $split[1];
+    } else {
+      return 'zero_config.' . $split[0];
+    }
+  }
+
+  public function applyCacheTags(&$render_array, string ...$keys) {
+    if (empty($render_array['#cache']['tags'])) {
+      $render_array['#cache']['tags'] = [];
+    }
+    foreach ($keys as $index => $key) $keys[$index] = $this->getCacheTag($key);
+    $render_array['#cache']['tags'] = Cache::mergeTags($render_array['#cache']['tags'], $keys);
   }
 
   public function getStates(): array {
     return Drupal::state()->get('zero_config', []);
   }
 
-  public function getBody(array $states, string $field): ?array {
-    if (empty($states[$field . '.value'])) return NULL;
+  public function getState(string $key, array $states = NULL) {
+    if ($states === NULL) $states = $this->getStates();
+    $this->cache->cacheAddTags([$this->getCacheTag($key)]);
+    if (!isset($states[$key])) return NULL;
+    return $states[$key];
+  }
+
+  public function hasState(string $key, array $states = NULL): bool {
+    return $this->getState($key, $states) !== NULL;
+  }
+
+  public function getBody(string $field, array $states = NULL): ?array {
+    $value = $this->getState($field . '.value', $states);
+    if ($value === NULL) return NULL;
     return [
       '#type' => 'processed_text',
-      '#text' => $states[$field . '.value'],
-      '#format' => $states[$field . '.format'],
+      '#text' => $value,
+      '#format' => $this->getState($field . '.format', $states),
     ];
   }
 
-  public function getImageStyle(array $states, string $image_style, string $field, int $index = 0): ?array {
-    $id = $states[$field . '.' . $index] ?? NULL;
+  public function getImageStyle(string $field, string $image_style = 'thumbnail', int $index = 0, array $states = NULL): ?array {
+    $id = $this->getState($field . '.' . $index, $states);
     if (empty($id)) return NULL;
     $file = Drupal::entityTypeManager()->getStorage('file')->load($id);
     if (!$file instanceof FileInterface) return NULL;

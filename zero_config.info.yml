@@ -4,3 +4,7 @@ configure: zero_config.form
 package: zero
 type: module
 core_version_requirement: ^8.8.0 || ^9 || ^10
+version: 2.0.0
+
+dependencies: 
+  - zero_cache:zero_cache
