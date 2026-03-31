@@ -68,18 +68,18 @@ class ConfigPluginManager extends DefaultPluginManager {
     return Drupal::state()->get('zero_config', []);
   }
 
-  public function getState(string $key, array $states = NULL) {
+  public function getState(string $key, ?array $states = NULL) {
     if ($states === NULL) $states = $this->getStates();
     $this->cache->cacheAddTags([$this->getCacheTag($key)]);
     if (!isset($states[$key])) return NULL;
     return $states[$key];
   }
 
-  public function hasState(string $key, array $states = NULL): bool {
+  public function hasState(string $key, ?array $states = NULL): bool {
     return $this->getState($key, $states) !== NULL;
   }
 
-  public function getBody(string $field, array $states = NULL): ?array {
+  public function getBody(string $field, ?array $states = NULL): ?array {
     $value = $this->getState($field . '.value', $states);
     if ($value === NULL) return NULL;
     return [
@@ -89,7 +89,7 @@ class ConfigPluginManager extends DefaultPluginManager {
     ];
   }
 
-  public function getImageStyle(string $field, string $image_style = 'thumbnail', int $index = 0, array $states = NULL): ?array {
+  public function getImageStyle(string $field, string $image_style = 'thumbnail', int $index = 0, ?array $states = NULL): ?array {
     $id = $this->getState($field . '.' . $index, $states);
     if (empty($id)) return NULL;
     $file = Drupal::entityTypeManager()->getStorage('file')->load($id);
